@@ -1,1 +1,6 @@
 -
+def parFilter[A](as: List[A])(f: A => Boolean): Par[List[A]] = {
+    foldLeft(unit(List[A]())((acc, i) => fork({
+        if f(a) acc::i
+    })
+]

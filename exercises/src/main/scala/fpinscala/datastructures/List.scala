@@ -65,4 +65,10 @@ object List { // `List` companion object. Contains functions for creating and wo
   def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
 
   def map[A,B](l: List[A])(f: A => B): List[B] = ???
+
+  def getWays(n: Int): Int = {
+    if(n<0) 0 else
+    if(n==0) 1 else
+    getWays(n-25)+getWays(n-10)+getWays(n-5)+getWays(n-1)
+  }
 }

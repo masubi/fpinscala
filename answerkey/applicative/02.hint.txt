@@ -1,1 +1,14 @@
 To implement `map2` in terms of `apply`, try using `f.curried` and following the types.
+
+def map2[A,B,C](fa:F[A], fb:F[B])(f: (A,B)=>C): F[A] = {
+    apply(map(fa)(f.curried))(fb)
+}
+
+def apply[A,B](fab: F[A=>B])(fa:F[A]): F[B] = {
+    map2(fab, fa)((_fab, _fa)=>_fab(_fa))
+}
+
+def map[A,B](fa: F[A])(f: A=>B): F[B] = {
+   apply(unit(f))(fa)
+}
+

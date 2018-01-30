@@ -30,32 +30,111 @@ object RNG {
       (f(a), rng2)
     }
 
-  def nonNegativeInt(rng: RNG): (Int, RNG) = ???
+  // We need to be quite careful not to skew the generator.
+  // Since `Int.Minvalue` is 1 smaller than `-(Int.MaxValue)`,
+  // it suffices to increment the negative numbers by 1 and make them positive.
+  // This maps Int.MinValue to Int.MaxValue and -1 to 0.
+  def nonNegativeInt(rng: RNG): (Int, RNG) = {
+    val (i, r) = rng.nextInt
+    (if (i < 0) -(i + 1) else i, r)
+  }
 
-  def double(rng: RNG): (Double, RNG) = ???
+  // We generate an integer >= 0 and divide it by one higher than the
+  // maximum. This is just one possible solution.
+  def double(rng: RNG): (Double, RNG) = {
+    val (i, r) = nonNegativeInt(rng)
+    (i / (Int.MaxValue.toDouble + 1), r)
+  }
 
-  def intDouble(rng: RNG): ((Int,Double), RNG) = ???
+  def boolean(rng: RNG): (Boolean, RNG) =
+    rng.nextInt match { case (i,rng2) => (i%2==0,rng2) }
 
-  def doubleInt(rng: RNG): ((Double,Int), RNG) = ???
+  def intDouble(rng: RNG): ((Int, Double), RNG) = {
+    val (i, r1) = rng.nextInt
+    val (d, r2) = double(r1)
+    ((i, d), r2)
+  }
 
-  def double3(rng: RNG): ((Double,Double,Double), RNG) = ???
+  def doubleInt(rng: RNG): ((Double, Int), RNG) = {
+    val ((i, d), r) = intDouble(rng)
+    ((d, i), r)
+  }
 
-  def ints(count: Int)(rng: RNG): (List[Int], RNG) = ???
+  def double3(rng: RNG): ((Double, Double, Double), RNG) = {
+    val (d1, r1) = double(rng)
+    val (d2, r2) = double(r1)
+    val (d3, r3) = double(r2)
+    ((d1, d2, d3), r3)
+  }
 
-  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = ???
+  def ints(count: Int)(rng: RNG): (List[Int], RNG) = {
+    def recurse(count: Int, currList: List[Int], r: RNG): (List[Int], RNG) = {
+      if(count==0){
+        (currList, r)
+      }else{
+        val (next, r2) = r.nextInt
+        recurse(count-1, next :: currList, r2)
+      }
+    }
+    recurse(count, List(), rng)
+  }
 
-  def sequence[A](fs: List[Rand[A]]): Rand[List[A]] = ???
+  def double4(rng: RNG): Rand[Double] ={
+    map(nonNegativeInt)(_ / (Int.MaxValue.toDouble + 1))
+  }
 
-  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = ???
+  def map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = {
+    rng => {
+      val (a, rng2) = ra(rng)
+      val (b, rng3) = rb(rng2)
+      (f(a,b), rng3)
+    }
+  }
+
+  def sequence[A](fs: List[Rand[A]]): Rand[List[A]]={
+    fs.foldRight(unit(List[A]()))((f, acc) => map2(f, acc)(_::_))
+  }
+
+  // exercise 6.8
+  def flatMap[A,B](f: Rand[A])(g: A => Rand[B]): Rand[B] = {
+
+  }
+
+  // exercise 6.9
+  def _map[A,B](s: Rand[A])(f: A => B): Rand[B] = {
+
+  }
+
+  def _map2[A,B,C](ra: Rand[A], rb: Rand[B])(f: (A, B) => C): Rand[C] = {
+
+  }
+
 }
 
+import State._
+
 case class State[S,+A](run: S => (A, S)) {
-  def map[B](f: A => B): State[S, B] =
-    ???
-  def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] =
-    ???
-  def flatMap[B](f: A => State[S, B]): State[S, B] =
-    ???
+
+  def map[B](f: A => B): State[S, B] ={
+    flatMap(a => unit(f(a)))
+  }
+
+  def map2[B,C](sb: State[S, B])(f: (A, B) => C): State[S, C] = {
+    flatMap( a => sb.map(b=>f(a,b)))
+  }
+
+  def flatMap[B](f: A => State[S, B]): State[S, B] ={
+    State( s => {
+      val (a, s1) = run(s)
+      f(a).run(s1)
+    })
+  }
+
+}
+
+object State {
+  def unit[S, A](a: A): State[S, A] =
+    State(s => (a,s))
 }
 
 sealed trait Input
@@ -64,7 +143,9 @@ case object Turn extends Input
 
 case class Machine(locked: Boolean, candies: Int, coins: Int)
 
+/*
 object State {
   type Rand[A] = State[RNG, A]
   def simulateMachine(inputs: List[Input]): State[Machine, (Int, Int)] = ???
 }
+*/

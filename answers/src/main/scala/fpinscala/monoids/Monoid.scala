@@ -174,8 +174,10 @@ object Monoid {
         Part("", 0, "")
       else
         Stub(c.toString)
+
     // `unstub(s)` is 0 if `s` is empty, otherwise 1.
     def unstub(s: String) = s.length min 1
+
     foldMapV(s.toIndexedSeq, wcMonoid)(wc) match {
       case Stub(s) => unstub(s)
       case Part(l, w, r) => unstub(l) + w + unstub(r)

@@ -1,1 +1,7 @@
 Look at your implementation of `map2` in terms of `apply` and try to follow the same pattern.
+
+// probably still correct but not answer given in "answers"
+def map3[A,B,C,D](fa:F[A], fb:F[B], fc:F[C])(f:(A,B,C)=>D) = {
+    apply(map(fb)(map(fa)(f.curried)))(fc)
+}
+

@@ -58,8 +58,16 @@ object Monoid {
   def foldLeft[A, B](as: List[A])(z: B)(f: (B, A) => B): B =
     ???
 
-  def foldMapV[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): B =
-    ???
+  def foldMapV[A, B](as: IndexedSeq[A], m: Monoid[B])(f: A => B): B = {
+    if(as.length==0){
+      m.zero
+    }else if(as.length==1){
+      f(as(0))
+    }else{
+      val (l,r) = as.splitAt(as.length/2)
+      m.op(foldMapV(l, m)(f), foldMapV(r, m)(f))
+    }
+  }
 
   def ordered(ints: IndexedSeq[Int]): Boolean =
     ???
@@ -74,7 +82,20 @@ object Monoid {
   def parFoldMap[A,B](v: IndexedSeq[A], m: Monoid[B])(f: A => B): Par[B] = 
     ???
 
-  val wcMonoid: Monoid[WC] = ???
+  //"test1L" 1 "test1R", "test2L" 2 "test2R", "test3L" 3 "test3R"
+  val wcMonoid: Monoid[WC] = {
+    val zero = Stub("")
+    def op(a: WC, b: WC): WC = {
+      (a, b) match {
+        case (Stub(c), Stub(d)) => Stub(c+d)
+        case (Stub(c), Part(l,w,r)) => Part(c+l, w, r)
+        case (Part(l,w,r), Stub(d)) => Part(l, w, r+d)
+        case (Part(l,w,r), Part(l2, w2, r2)) => {
+          new Part(l, w + (if((r+l2).nonEmpty) 1 else 0) + w2, r2)
+        }
+      }
+    }
+  }
 
   def count(s: String): Int = ???
 

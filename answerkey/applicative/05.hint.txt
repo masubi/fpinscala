@@ -1,1 +1,13 @@
 You can write `flatMap` using pattern matching.
+
+def eitherMonad[E]: Monad[((type f[x] = Either[E, x]})#f] = {
+    def unit[E, A](a: =>A) = {
+        Right(a)
+    }
+
+    def flatMap[A,B](fa)(f: A=>Either[E, B] = {
+        fa match{
+            case Left(e) =
+        }
+    }
+}
