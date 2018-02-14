@@ -1,5 +1,8 @@
 val commonSettings = Seq(
-  scalaVersion := "2.12.1"
+  scalaVersion := "2.12.1",
+  scalacOptions += "-Ypartial-unification",
+  libraryDependencies += "org.typelevel" %% "cats-core" % "1.0.1",
+  libraryDependencies += "org.typelevel" %% "cats-free" % "1.0.1"
 )
 
 lazy val root = (project in file("."))
