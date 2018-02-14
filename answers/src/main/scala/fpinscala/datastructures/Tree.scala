@@ -77,4 +77,5 @@ object Tree {
   */
   def mapViaFold[A,B](t: Tree[A])(f: A => B): Tree[B] = 
     fold(t)(a => Leaf(f(a)): Tree[B])(Branch(_,_))
+
 }

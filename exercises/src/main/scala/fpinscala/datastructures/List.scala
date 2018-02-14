@@ -60,15 +60,78 @@ object List { // `List` companion object. Contains functions for creating and wo
 
   def init[A](l: List[A]): List[A] = ???
 
-  def length[A](l: List[A]): Int = ???
+  def length[A](l: List[A]): Int = foldRight(l, 0)((_, acc) => 1+acc)
 
-  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = ???
+  def foldLeft[A,B](l: List[A], z: B)(f: (B, A) => B): B = {
+    l match {
+        case Nil => z
+        case Cons(x, xs) => foldLeft(xs, f(z, x))(f)
+    }
+  }
 
-  def map[A,B](l: List[A])(f: A => B): List[B] = ???
+  def leftProduct(l: List[Int])= foldLeft(l, 1)(_*_)
 
-  def getWays(n: Int): Int = {
-    if(n<0) 0 else
-    if(n==0) 1 else
-    getWays(n-25)+getWays(n-10)+getWays(n-5)+getWays(n-1)
+  def leftSum(l: List[Int]) = foldLeft(l, 0)(_+_)
+
+  def leftLength(l: List[Int]) = foldLeft(l, 0)( (z, x) => 1+z)
+
+
+  def reverse[A](l: List[A]): List[A] = foldLeft(l, List[A]())( (acc,h) => Cons(h, acc))
+
+  def append_w_fold[A](l1: List[A], l2: List[A]): List[A] =
+    foldRight(l1, l2)(Cons(_,_))
+
+  def addOne(l: List[Int]):List[Int] =
+    foldRight(l, Nil:List[Int])((h, t)=>Cons(h+1, t))
+
+  def doubleToS(l: List[Double]): List[String] =
+    foldRight(l, Nil:List[String])((h,t)=>Cons(h.toString, t))
+
+  def map[A,B](l: List[A])(f: A => B): List[B] =
+    foldRight(l, Nil:List[B])( (h,t) => Cons(f(h),t))
+
+  def filter[A](l: List[A])(f: A=>Boolean): List[A] =
+    foldRight(l, Nil:List[A])((h,t)=> {
+      if(f(h))
+        Cons(h, t)
+      else
+        t
+    })
+
+  //List.flatMap(List(1,2,3,4,5))( i=>List(i,i) )
+  def flatMap[A,B](as: List[A])(f: A=>List[B]): List[B] = {
+    foldRight(as, Nil:List[B])((h,t)=>append(t, f(h)))
+  }
+
+  // List.filterViaFlatMap(List(1,2,3,4,5))( x=> x>2 )
+  def filterViaFlatMap[A](as: List[A])(f: A=>Boolean): List[A] = {
+    flatMap(as)(x => {
+      if(f(x))
+        List(x)
+      else
+        Nil
+    })
+  }
+
+  def zipWith[A](l: List[A], r: List[A])(f: (A,A)=>A): List[A] ={
+    (l, r) match {
+      case (Nil, _) => Nil
+      case (_, Nil) => Nil
+      case (Cons(x, xs), Cons(y, ys)) => Cons(f(x,y), zipWith(xs,ys)(f))
+    }
+  }
+
+  def subseqence[A](l: List[A], r: List[A]): Boolean = {
+    (l,r) match {
+      case (Nil, _) => false
+      case (_, Nil) => true
+      case(Cons(lh,lt), Cons(rh,rt)) => {
+        if(lh == rh){
+          subseqence(lt,rt)
+        }else{
+          subseqence(lt,Cons(rh,rt))
+        }
+      }
+    }
   }
 }
